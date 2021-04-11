@@ -30,7 +30,7 @@ void GetCastlingMoves(const Board& board, Position from, Color color,
   for (int direction = -1; direction <= 1; direction += 2) {
     for (int size = 1; true; ++size) {
       int x = direction * size;
-      auto position = from.Move(x, from.Y());
+      auto position = from.Move(x, 0);
       if (!position.has_value()) {
         break;
       }
@@ -42,7 +42,7 @@ void GetCastlingMoves(const Board& board, Position from, Color color,
       if (rook == nullptr || rook->Moved()) {
         break;
       }
-      moves.push_back(*from.Move(direction * 2, from.Y()));
+      moves.push_back(*from.Move(direction * 2, 0));
       break;
     }
   }
