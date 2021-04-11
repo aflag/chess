@@ -65,8 +65,8 @@ double SmartUtility(Board& board, GameOutcome outcome, Color attackingcolor) {
         }
       }
 
-      float space = std::pow(board.GetMoves(attackingcolor).size(), 0.05);
-      float ratio = std::pow(my_value / their_value, 0.05);
+      float space = 0.1 * board.GetMoves(attackingcolor).size();
+      float ratio = 0.1 * (my_value / their_value);
 
       return utility * space * ratio;
   }
