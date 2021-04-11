@@ -99,11 +99,11 @@ int main(int argc, char *argv[]) {
       "hard",
       "accepted",
       "force",
-
+      "computer",
     };
     Board board;
     Color mycolor = kBlack;
-    bool first_move = false;
+    bool first_move = true;
     while (std::getline(std::cin, line)) {
       std::string command = line.substr(0, line.find(" "));
       if (command == "quit") {
@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
         mycolor = kWhite;
       } else if (command == "black") {
         mycolor = kBlack;
-      } else if (command == "go") {
+      } else if (command == "go" && first_move) {
         board.NewTurn(mycolor);
         auto valid_ai_moves = board.GetMoves(mycolor);
         Move ai_move = ChooseAiMove(board, mycolor, 4, SmartUtility);
