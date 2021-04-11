@@ -13,6 +13,9 @@
 #include "move.h"
 #include "engine.h"
 
+const int kDepth = 4;
+const auto kUtility = SmartUtility;
+
 Move ReadHumanMove(const std::vector<Move>& valid_moves) {
   while (true) {
     std::cout << "Your move: ";
@@ -35,9 +38,15 @@ Move ReadHumanMove(const std::vector<Move>& valid_moves) {
   }
 }
 
-Move ChooseAiMove(Board& board, Color color, int depth, double (*utility)(Board& board, GameOutcome outcome, Color attackingcolor)) {
+Move ChooseAiMove(
+  Board& board,
+  Color color,
+  int depth,
+  double (*utility)(Board& board, GameOutcome outcome, Color attackingcolor),
+  Cache& cache
+) {
   auto t0 = std::chrono::high_resolution_clock::now();
-  auto valid_moves = ComputeUtility(board, color, depth, utility);
+  auto valid_moves = ComputeUtility(board, color, depth, utility, cache);
   std::chrono::duration<double, std::milli> delta = std::chrono::high_resolution_clock::now() - t0;
   std::cout << "# Move found in: " << (delta.count() / 1000.0) << "s" << std::endl;
   std::sort(valid_moves.begin(), valid_moves.end(), ColorfulCompare(color));
@@ -48,6 +57,7 @@ Move ChooseAiMove(Board& board, Color color, int depth, double (*utility)(Board&
 }
 
 int main(int argc, char *argv[]) {
+  Cache cache;
   if (argc > 1 && !strcmp(argv[1], "ascii")) {
     srand(unsigned(time(nullptr)));
     Board board;
@@ -76,7 +86,7 @@ int main(int argc, char *argv[]) {
         std::cout << "Stalemate draw." << std::endl;
         return 0;
       }
-      Move ai_move = ChooseAiMove(board, kBlack, 4, SmartUtility);
+      Move ai_move = ChooseAiMove(board, kBlack, kDepth, kUtility, cache);
       std::cout << "AI played: " << ai_move.String() << std::endl;
       board.DoMove(ai_move);
     }
@@ -117,7 +127,7 @@ int main(int argc, char *argv[]) {
       } else if (command == "go" && first_move) {
         board.NewTurn(mycolor);
         auto valid_ai_moves = board.GetMoves(mycolor);
-        Move ai_move = ChooseAiMove(board, mycolor, 4, SmartUtility);
+        Move ai_move = ChooseAiMove(board, mycolor, kDepth, kUtility, cache);
         board.DoMove(ai_move);
         std::cout << "move " << ai_move.XboardString() << std::endl;
         board.NewTurn(Other(mycolor));
@@ -147,7 +157,7 @@ int main(int argc, char *argv[]) {
           continue;
         }
 
-        Move ai_move = ChooseAiMove(board, mycolor, 4, SmartUtility);
+        Move ai_move = ChooseAiMove(board, mycolor, kDepth, kUtility, cache);
         board.DoMove(ai_move);
         std::cout << "move " << ai_move.XboardString() << std::endl;
 

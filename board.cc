@@ -258,3 +258,40 @@ Board::Snapshot::Snapshot(Piece* board[8][8]) {
     }
   }
 }
+
+std::string Board::Hash() const {
+  std::string hash;
+  hash.reserve(128);
+  for (int i = 0; i < 8; ++i) {
+    for (int j = 0; j < 8; ++j) {
+      const Pawn *p;
+      const King *k;
+      const Rook *r;
+      const Knight *n;
+      const Bishop *b;
+      const Queen *q;
+      if ((p = dynamic_cast<const Pawn*>(board_[i][j].get())) != nullptr) {
+        hash += p->GetColor() == kWhite ? "P" : "p";
+      } else if ((n = dynamic_cast<const Knight*>(board_[i][j].get())) != nullptr) {
+        hash += n->GetColor() == kWhite ? "N" : "n";
+      } else if ((b = dynamic_cast<const Bishop*>(board_[i][j].get())) != nullptr) {
+        hash += b->GetColor() == kWhite ? "B" : "b";
+      } else if ((r = dynamic_cast<const Rook*>(board_[i][j].get())) != nullptr) {
+        hash += r->GetColor() == kWhite ? "R" : "r";
+        if (!r->Moved()) {
+          hash += "'";
+        }
+      } else if ((q = dynamic_cast<const Queen*>(board_[i][j].get())) != nullptr) {
+        hash += q->GetColor() == kWhite ? "Q" : "q";
+      } else if ((k = dynamic_cast<const King*>(board_[i][j].get())) != nullptr) {
+        hash += k->GetColor() == kWhite ? "K" : "k";
+        if (!k->Moved()) {
+          hash += "'";
+        }
+      } else {
+        hash += ".";
+      }
+    }
+  }
+  return hash;
+}

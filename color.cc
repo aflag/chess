@@ -1,3 +1,5 @@
+#include <string>
+
 #include "color.h"
 
 Color Other(Color color) {
@@ -5,4 +7,8 @@ Color Other(Color color) {
     return kBlack;
   }
   return kWhite;
+}
+
+std::string ColorToString(Color color) {
+  return kWhite ? "white" : "black";
 }

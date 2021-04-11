@@ -29,6 +29,7 @@ class Board {
   void NewTurn(Color color);
   void Set(Position position, std::unique_ptr<Piece> piece);
   std::optional<Position> FindKing(Color color) const;
+  std::string Hash() const;
 
  private:
   std::unique_ptr<Piece> board_[8][8];

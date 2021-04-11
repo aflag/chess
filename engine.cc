@@ -7,6 +7,7 @@
 #include "color.h"
 #include "engine.h"
 #include "move.h"
+#include "cache.h"
 
 static int multiplier(Color color) {
   return color == kWhite ? 1 : -1;
@@ -89,7 +90,15 @@ class CapturesFirst {
   const Board& board_;
 };
 
-void ComputeUtilityInternal(Board& board, Color mycolor, int depth, float theirbest, double (*utility)(Board& board, GameOutcome outcome, Color attackingcolor), std::vector<Move>& moves) {
+void ComputeUtilityInternal(
+  Board& board,
+  Color mycolor,
+  int depth,
+  float theirbest,
+  double (*utility)(Board& board, GameOutcome outcome, Color attackingcolor),
+  std::vector<Move>& moves,
+  Cache& cache
+) {
   auto theircolour = Other(mycolor);
   float mybest = multiplier(theircolour) * std::numeric_limits<double>::infinity();
   int c = 0;
@@ -97,15 +106,23 @@ void ComputeUtilityInternal(Board& board, Color mycolor, int depth, float theirb
   for (auto it = moves.begin(); it != moves.end(); ++it) {
     std::unique_ptr<Board::Snapshot> snapshot = board.TakeSnapshot();
     board.DoMove(*it);
-    std::vector<Move> theirmoves = board.GetMoves(theircolour);
-    bool ischeck = board.IsCheck(theircolour);
-    GameOutcome outcome = GetGameOutcome(!theirmoves.empty(), ischeck);
-    if (depth == 0 || outcome != kInProgress) {
-      it->SetUtility(utility(board, outcome, mycolor));
+    // TODO: the current turn should be stored as part of the board info
+    int board_hash = std::hash<std::string>{}(board.Hash() + "_" + std::to_string(depth) + "_" + ColorToString(theircolour));
+    auto cached_utility = cache.find(board_hash);
+    if (cached_utility != cache.end()) {
+      it->SetUtility(cached_utility->second);
     } else {
-      ComputeUtilityInternal(board, theircolour, depth-1, mybest, utility, theirmoves);
-      auto theirbest = std::max_element(theirmoves.begin(), theirmoves.end(), ColorfulCompare(theircolour));
-      it->SetUtility(theirbest->Utility());
+      std::vector<Move> theirmoves = board.GetMoves(theircolour);
+      bool ischeck = board.IsCheck(theircolour);
+      GameOutcome outcome = GetGameOutcome(!theirmoves.empty(), ischeck);
+      if (depth == 0 || outcome != kInProgress) {
+        it->SetUtility(utility(board, outcome, mycolor));
+      } else {
+        ComputeUtilityInternal(board, theircolour, depth-1, mybest, utility, theirmoves, cache);
+        auto theirbest = std::max_element(theirmoves.begin(), theirmoves.end(), ColorfulCompare(theircolour));
+        it->SetUtility(theirbest->Utility());
+      }
+      cache[board_hash] = it->Utility();
     }
     board.RecoverSnapshot(*snapshot);
     if (IsUtilityBetterThan(it->Utility(), mybest, mycolor)) {
@@ -122,8 +139,14 @@ void ComputeUtilityInternal(Board& board, Color mycolor, int depth, float theirb
   }
 }
 
-std::vector<Move> ComputeUtility(Board& board, Color mycolor, int depth, double (*utility)(Board& board, GameOutcome outcome, Color attackingcolor)) {
+std::vector<Move> ComputeUtility(
+  Board& board,
+  Color mycolor,
+  int depth,
+  double (*utility)(Board& board, GameOutcome outcome, Color attackingcolor),
+  Cache& cache
+) {
   std::vector<Move> moves = board.GetMoves(mycolor);
-  ComputeUtilityInternal(board, mycolor, depth, multiplier(mycolor) * std::numeric_limits<double>::infinity(), utility, moves);
+  ComputeUtilityInternal(board, mycolor, depth, multiplier(mycolor) * std::numeric_limits<double>::infinity(), utility, moves, cache);
   return moves;
 }
