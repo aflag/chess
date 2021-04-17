@@ -30,6 +30,8 @@ class Board {
   void Set(Position position, std::unique_ptr<Piece> piece);
   std::optional<Position> FindKing(Color color) const;
   std::string Hash() const;
+  void Clear();
+  void Setup(std::vector<std::tuple<Position, std::unique_ptr<Piece>>>& positions);
 
  private:
   std::unique_ptr<Piece> board_[8][8];

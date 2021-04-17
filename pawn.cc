@@ -30,7 +30,7 @@ void GetRegularMoves(const Board& board, Position from, Color color,
     return;
   }
   moves.push_back(*next);
-  if (color == kWhite && from.Y() != 1 || color == kBlack && from.Y() != 6) {
+  if ((color == kWhite && from.Y() != 1) || (color == kBlack && from.Y() != 6)) {
     return;
   }
   auto two = next->Move(0, Forward(color));

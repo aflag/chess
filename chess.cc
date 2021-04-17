@@ -72,6 +72,8 @@ int main(int argc, char *argv[]) {
       case kDraw:
         std::cout << "Stalemate draw." << std::endl;
         return 0;
+      case kInProgress:
+        break;
       }
       Move human_move = ReadHumanMove(valid_human_moves);
       board.DoMove(human_move);
@@ -85,6 +87,8 @@ int main(int argc, char *argv[]) {
       case kDraw:
         std::cout << "Stalemate draw." << std::endl;
         return 0;
+      case kInProgress:
+        break;
       }
       Move ai_move = ChooseAiMove(board, kBlack, kDepth, kUtility, cache);
       std::cout << "AI played: " << ai_move.String() << std::endl;
@@ -155,6 +159,8 @@ int main(int argc, char *argv[]) {
         case kDraw:
           std::cout << "1/2-1/2 {Stalemate}" << std::endl;
           continue;
+        case kInProgress:
+          break;
         }
 
         Move ai_move = ChooseAiMove(board, mycolor, kDepth, kUtility, cache);
@@ -170,6 +176,8 @@ int main(int argc, char *argv[]) {
         case kDraw:
           std::cout << "1/2-1/2 {Stalemate}" << std::endl;
           continue;
+        case kInProgress:
+          break;
         }
       }
     }

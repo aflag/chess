@@ -295,3 +295,18 @@ std::string Board::Hash() const {
   }
   return hash;
 }
+
+void Board::Clear() {
+  for (int i = 0; i < 8; ++i) {
+    for (int j = 0; j < 8; ++j) {
+      board_[i][j].reset();
+    }
+  }
+}
+
+void Board::Setup(std::vector<std::tuple<Position, std::unique_ptr<Piece>>>& positions) {
+  for (auto item = positions.begin(); item != positions.end(); ++item) {
+    Position& pos = std::get<0>(*item);
+    board_[pos.X()][pos.Y()] = std::move(std::get<1>(*item));
+  }
+}

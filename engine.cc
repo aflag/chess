@@ -67,7 +67,7 @@ double SmartUtility(Board& board, GameOutcome outcome, Color attackingcolor) {
       }
 
       float space = 0.1 * board.GetMoves(attackingcolor).size();
-      float ratio = 0.1 * (my_value / their_value);
+      float ratio = std::sqrt(my_value / their_value);
 
       return utility * space * ratio;
   }
@@ -84,7 +84,7 @@ class CapturesFirst {
   bool operator()(const Move& a, const Move& b) {
     auto to_a = board_.GetPiece(a.To());
     auto to_b = board_.GetPiece(b.To());
-    return to_a == nullptr && to_b != nullptr || (to_a != nullptr && to_b != nullptr && to_a->Value() < to_b->Value());
+    return (to_a == nullptr && to_b != nullptr) || (to_a != nullptr && to_b != nullptr && to_a->Value() < to_b->Value());
   }
  private:
   const Board& board_;
