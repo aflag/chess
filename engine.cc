@@ -91,7 +91,7 @@ class CapturesFirst {
 };
 
 void ComputeUtilityInternal(
-  Board& board,
+  const Board& parent_board,
   Color mycolor,
   int depth,
   float theirbest,
@@ -102,9 +102,9 @@ void ComputeUtilityInternal(
   auto theircolour = Other(mycolor);
   float mybest = multiplier(theircolour) * std::numeric_limits<double>::infinity();
   int c = 0;
-  std::sort(moves.rbegin(), moves.rend(), CapturesFirst(board));
+  std::sort(moves.rbegin(), moves.rend(), CapturesFirst(parent_board));
   for (auto it = moves.begin(); it != moves.end(); ++it) {
-    std::unique_ptr<Board::Snapshot> snapshot = board.TakeSnapshot();
+    Board board = parent_board;
     board.DoMove(*it);
     // TODO: the current turn should be stored as part of the board info
     int board_hash = std::hash<std::string>{}(board.Hash() + "_" + std::to_string(depth) + "_" + ColorToString(theircolour));
@@ -124,7 +124,6 @@ void ComputeUtilityInternal(
       }
       cache[board_hash] = it->Utility();
     }
-    board.RecoverSnapshot(*snapshot);
     if (IsUtilityBetterThan(it->Utility(), mybest, mycolor)) {
       mybest = it->Utility();
     }
@@ -140,7 +139,7 @@ void ComputeUtilityInternal(
 }
 
 std::vector<Move> ComputeUtility(
-  Board& board,
+  Board board,
   Color mycolor,
   int depth,
   double (*utility)(Board& board, GameOutcome outcome, Color attackingcolor),

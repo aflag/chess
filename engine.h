@@ -11,7 +11,7 @@ enum GameOutcome { kInProgress, kDraw, kCheckmate };
 GameOutcome GetGameOutcome(bool has_valid_moves, bool isCheck);
 
 std::vector<Move> ComputeUtility(
-  Board& board,
+  Board board,
   Color mycolor,
   int depth,
   double (*utility)(Board& board, GameOutcome outcome, Color attackingcolor),

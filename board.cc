@@ -75,6 +75,18 @@ Board::Board() {
   SetUpColor(kBlack, 7, 6, board_);
 }
 
+Board::Board(const Board& b) {
+  for (int i = 0; i < 8; ++i) {
+    for (int j = 0; j < 8; ++j) {
+      if (b.board_[i][j] != nullptr) {
+        board_[i][j] = std::unique_ptr<Piece>(b.board_[i][j]->Clone());
+      } else {
+        board_[i][j] = nullptr;
+      }
+    }
+  }
+}
+
 void Board::Print() const {
   for (int y = 7; y >= 0; --y) {
     std::cout << y + 1 << " ";
@@ -223,40 +235,6 @@ std::list<const Piece*> Board::GetPieces() const {
     }
   }
   return pieces;
-}
-
-std::unique_ptr<Board::Snapshot> Board::TakeSnapshot() const {
-  Piece* board[8][8];
-  for (int i = 0; i < 8; ++i) {
-    for (int j = 0; j < 8; ++j) {
-      if (board_[i][j] != nullptr) {
-        board[i][j] = board_[i][j]->Clone();
-      } else {
-        board[i][j] = nullptr;
-      }
-    }
-  }
-  return std::unique_ptr<Board::Snapshot>(new Board::Snapshot(board));
-}
-
-void Board::RecoverSnapshot(const Board::Snapshot& snapshot) {
-  for (int i = 0; i < 8; ++i) {
-    for (int j = 0; j < 8; ++j) {
-      if (snapshot.board_[i][j] != nullptr) {
-        board_[i][j] = std::unique_ptr<Piece>(snapshot.board_[i][j]->Clone());
-      } else {
-        board_[i][j].reset();
-      }
-    }
-  }
-}
-
-Board::Snapshot::Snapshot(Piece* board[8][8]) {
-  for (int i = 0; i < 8; ++i) {
-    for (int j = 0; j < 8; ++j) {
-      board_[i][j] = std::unique_ptr<Piece>(board[i][j]);
-    }
-  }
 }
 
 std::string Board::Hash() const {

@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_CASE(TestCaptureFreePawn) {
   auto moves = ComputeUtility(b, kWhite, 2, SmartUtility, cache);
   auto best = std::max_element(moves.begin(), moves.end(), ColorfulCompare(kWhite));
 
-  BOOST_CHECK_EQUAL(moves.size(), 18);
+  BOOST_REQUIRE_EQUAL(moves.size(), 18);
 
   // rook
   BOOST_CHECK_EQUAL(best->From().X(), 2);
