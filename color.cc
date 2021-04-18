@@ -10,5 +10,5 @@ Color Other(Color color) {
 }
 
 std::string ColorToString(Color color) {
-  return kWhite ? "white" : "black";
+  return color == kWhite ? "white" : "black";
 }
