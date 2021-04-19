@@ -70,12 +70,13 @@ std::unique_ptr<Piece>& GetMutablePiece(std::unique_ptr<Piece> (&board)[8][8],
 
 }  // namespace
 
-Board::Board() {
+Board::Board() : current_player_(kWhite), turn_(0), cached_turn_(-1) {
   SetUpColor(kWhite, 0, 1, board_);
   SetUpColor(kBlack, 7, 6, board_);
 }
 
-Board::Board(const Board& b) {
+// The cache is not copied because it's probably irrelevant anyway
+Board::Board(const Board& b) : current_player_(b.current_player_), turn_(b.turn_), cached_turn_(-1) {
   for (int i = 0; i < 8; ++i) {
     for (int j = 0; j < 8; ++j) {
       if (b.board_[i][j] != nullptr) {
@@ -87,21 +88,33 @@ Board::Board(const Board& b) {
   }
 }
 
-void Board::Print() const {
+void Board::Print(std::ostream& out) const {
   for (int y = 7; y >= 0; --y) {
-    std::cout << y + 1 << " ";
+    out << y + 1 << " ";
     for (int x = 0; x <= 7; ++x) {
       const Piece* piece = GetPiece({x, y});
-      std::cout << "\e[48;5;" << ((x + y) % 2 == 0 ? "94" : "208") << "m"
+      out << "\e[48;5;" << ((x + y) % 2 == 0 ? "94" : "208") << "m"
                 << (piece == nullptr ? " " : piece->String());
     }
-    std::cout << "\e[0m";
-    std::cout << std::endl;
+    out << "\e[0m";
+    out << std::endl;
   }
-  std::cout << "  abcdefgh" << std::endl;
+  out << "  abcdefgh" << std::endl;
 }
 
-std::vector<Move> Board::GetMoves(Color color) {
+int Board::CountTargetedSquares(Color color) {
+  return (int) GetMovesInternal(color).size();
+}
+
+std::vector<Move> Board::GetMoves() {
+  if (cached_turn_ != turn_) {
+    cached_turn_ = turn_;
+    cached_moves_ = GetMovesInternal(current_player_);
+  }
+  return cached_moves_;
+}
+
+std::vector<Move> Board::GetMovesInternal(Color color) {
   std::vector<Move> moves = GetMovesWithPossibleCheck(*this, color);
   for (auto i = moves.begin(); i != moves.end();) {
     std::unique_ptr<Piece>& from = GetMutablePiece(board_, i->From());
@@ -118,6 +131,17 @@ std::vector<Move> Board::GetMoves(Color color) {
     ++i;
   }
   return moves;
+}
+
+GameOutcome Board::GetGameOutcome() {
+  std::vector<Move> moves = GetMoves();
+  if (!moves.empty()) {
+    return kInProgress;
+  } else if (IsCheck(current_player_)) {
+    return kCheckmate;
+  } else {
+    return kDraw;
+  }
 }
 
 const Piece* Board::GetPiece(Position position) const {
@@ -209,15 +233,17 @@ void Board::DoMove(const Move& move) {
   to->DoMove(*this, move);
 }
 
-void Board::NewTurn(Color color) {
+void Board::NewTurn() {
   for (int x = 0; x <= 7; ++x) {
     for (int y = 0; y <= 7; ++y) {
       Piece* piece = board_[x][y].get();
-      if (piece != nullptr && piece->GetColor() == color) {
+      if (piece != nullptr && piece->GetColor() == current_player_) {
         piece->NewTurn();
       }
     }
   }
+  ++turn_;
+  current_player_ = Other(current_player_);
 }
 
 void Board::Set(Position position, std::unique_ptr<Piece> piece) {
@@ -274,17 +300,17 @@ std::string Board::Hash() const {
   return hash;
 }
 
-void Board::Clear() {
+void Board::Setup(std::vector<std::tuple<Position, std::unique_ptr<Piece>>>& positions, Color current_player) {
   for (int i = 0; i < 8; ++i) {
     for (int j = 0; j < 8; ++j) {
       board_[i][j].reset();
     }
   }
-}
-
-void Board::Setup(std::vector<std::tuple<Position, std::unique_ptr<Piece>>>& positions) {
   for (auto item = positions.begin(); item != positions.end(); ++item) {
     Position& pos = std::get<0>(*item);
     board_[pos.X()][pos.Y()] = std::move(std::get<1>(*item));
   }
+  current_player_ = current_player;
 }
+
+Color Board::CurrentPlayer() const { return current_player_; }

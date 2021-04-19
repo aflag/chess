@@ -3,6 +3,7 @@
 #include <ctime>
 #include <chrono>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <cstring>
 #include <set>
@@ -42,7 +43,7 @@ Move ChooseAiMove(
   Board& board,
   Color color,
   int depth,
-  double (*utility)(Board& board, GameOutcome outcome, Color attackingcolor),
+  double (*utility)(Board& board, Color attackingcolor),
   Cache& cache
 ) {
   auto t0 = std::chrono::high_resolution_clock::now();
@@ -58,41 +59,43 @@ Move ChooseAiMove(
 
 int main(int argc, char *argv[]) {
   Cache cache;
+  std::ofstream board_logs;
+  board_logs.open("/tmp/board.log");
   if (argc > 1 && !strcmp(argv[1], "ascii")) {
     srand(unsigned(time(nullptr)));
     Board board;
     while (true) {
-      board.NewTurn(kWhite);
       board.Print();
-      auto valid_human_moves = board.GetMoves(kWhite);
-      switch (GetGameOutcome(!valid_human_moves.empty(), board.IsCheck(kWhite))) {
-      case kCheckmate:
-        std::cout << "You lose!" << std::endl;
-        return 0;
-      case kDraw:
-        std::cout << "Stalemate draw." << std::endl;
-        return 0;
-      case kInProgress:
-        break;
+      auto valid_human_moves = board.GetMoves();
+      switch (board.GetGameOutcome()) {
+        case kCheckmate:
+          std::cout << "You lose!" << std::endl;
+          return 0;
+        case kDraw:
+          std::cout << "Draw" << std::endl;
+          return 0;
+        case kInProgress:
+          break;
       }
       Move human_move = ReadHumanMove(valid_human_moves);
       board.DoMove(human_move);
-      board.NewTurn(kBlack);
+      board.NewTurn();
       board.Print();
-      auto valid_ai_moves = board.GetMoves(kBlack);
-      switch (GetGameOutcome(!valid_ai_moves.empty(), board.IsCheck(kBlack))) {
-      case kCheckmate:
-        std::cout << "You win!" << std::endl;
-        return 0;
-      case kDraw:
-        std::cout << "Stalemate draw." << std::endl;
-        return 0;
-      case kInProgress:
-        break;
+      auto valid_ai_moves = board.GetMoves();
+      switch (board.GetGameOutcome()) {
+        case kCheckmate:
+          std::cout << "You win!" << std::endl;
+          return 0;
+        case kDraw:
+          std::cout << "Draw" << std::endl;
+          return 0;
+        case kInProgress:
+          break;
       }
       Move ai_move = ChooseAiMove(board, kBlack, kDepth, kUtility, cache);
       std::cout << "AI played: " << ai_move.String() << std::endl;
       board.DoMove(ai_move);
+      board.NewTurn();
     }
   } else {
     std::cout.setf(std::ios::unitbuf);
@@ -118,6 +121,7 @@ int main(int argc, char *argv[]) {
     Board board;
     Color mycolor = kBlack;
     bool first_move = true;
+    board.Print(board_logs);
     while (std::getline(std::cin, line)) {
       std::string command = line.substr(0, line.find(" "));
       if (command == "quit") {
@@ -129,19 +133,16 @@ int main(int argc, char *argv[]) {
       } else if (command == "black") {
         mycolor = kBlack;
       } else if (command == "go" && first_move) {
-        board.NewTurn(mycolor);
-        auto valid_ai_moves = board.GetMoves(mycolor);
+        auto valid_ai_moves = board.GetMoves();
         Move ai_move = ChooseAiMove(board, mycolor, kDepth, kUtility, cache);
         board.DoMove(ai_move);
+        board.NewTurn();
+        board.Print(board_logs);
         std::cout << "move " << ai_move.XboardString() << std::endl;
-        board.NewTurn(Other(mycolor));
       } else if (ignored.find(command) != ignored.end()) {
         // ignore
       } else {
         // not a known command, must be a move
-        if (first_move && Other(mycolor) == kWhite) {
-          board.NewTurn(kWhite);
-        }
         first_move = false;
         auto human_move = Move::FromXboardString(command);
         if (!human_move.has_value()) {
@@ -149,38 +150,41 @@ int main(int argc, char *argv[]) {
           continue;
         }
         board.DoMove(*human_move);
+        board.NewTurn();
+        board.Print(board_logs);
 
-        board.NewTurn(mycolor);
-        auto valid_ai_moves = board.GetMoves(mycolor);
-        switch (GetGameOutcome(!valid_ai_moves.empty(), board.IsCheck(mycolor))) {
-        case kCheckmate:
-          std::cout << "1-0 {White mates}" << std::endl;
-          continue;
-        case kDraw:
-          std::cout << "1/2-1/2 {Stalemate}" << std::endl;
-          continue;
-        case kInProgress:
-          break;
+        auto valid_ai_moves = board.GetMoves();
+        switch (board.GetGameOutcome()) {
+          case kCheckmate:
+            std::cout << "1-0 {White mates}" << std::endl;
+            continue;
+          case kDraw:
+            std::cout << "1/2-1/2 {draw}" << std::endl;
+            continue;
+          case kInProgress:
+            break;
         }
 
         Move ai_move = ChooseAiMove(board, mycolor, kDepth, kUtility, cache);
         board.DoMove(ai_move);
+        board.NewTurn();
+        board.Print(board_logs);
         std::cout << "move " << ai_move.XboardString() << std::endl;
 
-        board.NewTurn(Other(mycolor));
-        auto valid_human_moves = board.GetMoves(Other(mycolor));
-        switch (GetGameOutcome(!valid_human_moves.empty(), board.IsCheck(Other(mycolor)))) {
-        case kCheckmate:
-          std::cout << "0-1 {Black mates}" << std::endl;
-          continue;
-        case kDraw:
-          std::cout << "1/2-1/2 {Stalemate}" << std::endl;
-          continue;
-        case kInProgress:
-          break;
+        auto valid_human_moves = board.GetMoves();
+        switch (board.GetGameOutcome()) {
+          case kCheckmate:
+            std::cout << "0-1 {Black mates}" << std::endl;
+            continue;
+          case kDraw:
+            std::cout << "1/2-1/2 {draw}" << std::endl;
+            continue;
+          case kInProgress:
+            break;
         }
       }
     }
   }
+  board_logs.close();
   return 0;
 }

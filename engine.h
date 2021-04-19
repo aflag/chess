@@ -6,20 +6,16 @@
 #include "color.h"
 #include "cache.h"
 
-enum GameOutcome { kInProgress, kDraw, kCheckmate };
-
-GameOutcome GetGameOutcome(bool has_valid_moves, bool isCheck);
-
 std::vector<Move> ComputeUtility(
   Board board,
   Color mycolor,
   int depth,
-  double (*utility)(Board& board, GameOutcome outcome, Color attackingcolor),
+  double (*utility)(Board& board, Color attackingcolor),
   Cache& cache
 );
 
-double MaterialisticUtility(Board& board, GameOutcome outcome, Color attackingcolor);
-double SmartUtility(Board& board, GameOutcome outcome, Color attackingcolor);
+double MaterialisticUtility(Board& board, Color attackingcolor);
+double SmartUtility(Board& board, Color attackingcolor);
 
 class ColorfulCompare {
  public:
