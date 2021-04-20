@@ -304,7 +304,7 @@ std::string Board::Hash() const {
       }
     }
   }
-  return hash;
+  return hash + "_" + ColorToString(current_player_);
 }
 
 Color Board::CurrentPlayer() const { return current_player_; }

@@ -38,7 +38,9 @@ class Board {
 
   std::unique_ptr<Piece> board_[8][8];
   Color current_player_;
+
   int turn_;
+
   std::vector<Move> cached_moves_;
   int cached_turn_;
 };
