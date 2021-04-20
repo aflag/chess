@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <list>
+#include <unordered_map>
 
 #include "bishop.h"
 #include "color.h"
@@ -73,10 +74,11 @@ std::unique_ptr<Piece>& GetMutablePiece(std::unique_ptr<Piece> (&board)[8][8],
 Board::Board() : current_player_(kWhite), turn_(0), cached_turn_(-1) {
   SetUpColor(kWhite, 0, 1, board_);
   SetUpColor(kBlack, 7, 6, board_);
+  ++repetitions_[Hash()];
 }
 
 // The cache is not copied because it's probably irrelevant anyway
-Board::Board(const Board& b) : current_player_(b.current_player_), turn_(b.turn_), cached_turn_(-1) {
+Board::Board(const Board& b) : current_player_(b.current_player_), turn_(b.turn_), cached_turn_(-1), repetitions_(b.repetitions_) {
   for (int i = 0; i < 8; ++i) {
     for (int j = 0; j < 8; ++j) {
       if (b.board_[i][j] != nullptr) {
@@ -93,6 +95,7 @@ Board::Board(std::vector<std::tuple<Position, std::unique_ptr<Piece>>>& position
     Position& pos = std::get<0>(*item);
     board_[pos.X()][pos.Y()] = std::move(std::get<1>(*item));
   }
+  ++repetitions_[Hash()];
 }
 
 void Board::Print(std::ostream& out) const {
@@ -141,6 +144,9 @@ std::vector<Move> Board::GetMovesInternal(Color color) {
 }
 
 GameOutcome Board::GetGameOutcome() {
+  if (repetitions_[Hash()] >= 3) {
+    return kDraw;
+  }
   std::vector<Move> moves = GetMoves();
   if (!moves.empty()) {
     return kInProgress;
@@ -251,6 +257,7 @@ void Board::NewTurn() {
   }
   ++turn_;
   current_player_ = Other(current_player_);
+  ++repetitions_[Hash()];
 }
 
 void Board::Set(Position position, std::unique_ptr<Piece> piece) {

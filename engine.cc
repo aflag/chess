@@ -99,7 +99,6 @@ void ComputeUtilityInternal(
     Board board = parent_board;
     board.DoMove(*it);
     board.NewTurn();
-    // TODO: the current turn should be stored as part of the board info
     int board_hash = std::hash<std::string>{}(board.Hash() + "_" + std::to_string(depth));
     auto cached_utility = cache.find(board_hash);
     if (cached_utility != cache.end()) {

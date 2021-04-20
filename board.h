@@ -5,6 +5,7 @@
 #include <vector>
 #include <list>
 #include <iostream>
+#include <unordered_map>
 
 #include "color.h"
 #include "move.h"
@@ -43,6 +44,8 @@ class Board {
 
   std::vector<Move> cached_moves_;
   int cached_turn_;
+
+  std::unordered_map<std::string, int> repetitions_;
 };
 
 #endif  // BOARD_H_

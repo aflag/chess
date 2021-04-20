@@ -44,3 +44,24 @@ BOOST_AUTO_TEST_CASE(TestFindsMate) {
   // finds mate
   BOOST_CHECK(std::isinf(best->Utility()));
 }
+
+void PlayAGame(Board& board) {
+  int depth = 2;
+  Cache cache;
+  while (true) {
+    auto moves = ComputeUtility(board, board.CurrentPlayer(), depth, MaterialisticUtility, cache);
+    auto best = std::max_element(moves.begin(), moves.end(), ColorfulCompare(board.CurrentPlayer()));
+    board.DoMove(*best);
+    board.NewTurn();
+    if (board.GetGameOutcome() != kInProgress) {
+      break;
+    }
+  }
+}
+
+BOOST_AUTO_TEST_CASE(TestRegressionTest) {
+  Board board;
+  PlayAGame(board);
+  BOOST_CHECK_EQUAL(board.Hash(), "R'P..r.pr'NP....pnBP....pbQP....pqK..P..pkBP....pbN.P...pnR.P.p..._black");
+  BOOST_CHECK_EQUAL(board.GetGameOutcome(), kDraw);
+}
