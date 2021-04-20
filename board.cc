@@ -88,6 +88,13 @@ Board::Board(const Board& b) : current_player_(b.current_player_), turn_(b.turn_
   }
 }
 
+Board::Board(std::vector<std::tuple<Position, std::unique_ptr<Piece>>>& positions, Color current_player) : current_player_(current_player), turn_(0), cached_turn_(-1) {
+  for (auto item = positions.begin(); item != positions.end(); ++item) {
+    Position& pos = std::get<0>(*item);
+    board_[pos.X()][pos.Y()] = std::move(std::get<1>(*item));
+  }
+}
+
 void Board::Print(std::ostream& out) const {
   for (int y = 7; y >= 0; --y) {
     out << y + 1 << " ";
@@ -298,19 +305,6 @@ std::string Board::Hash() const {
     }
   }
   return hash;
-}
-
-void Board::Setup(std::vector<std::tuple<Position, std::unique_ptr<Piece>>>& positions, Color current_player) {
-  for (int i = 0; i < 8; ++i) {
-    for (int j = 0; j < 8; ++j) {
-      board_[i][j].reset();
-    }
-  }
-  for (auto item = positions.begin(); item != positions.end(); ++item) {
-    Position& pos = std::get<0>(*item);
-    board_[pos.X()][pos.Y()] = std::move(std::get<1>(*item));
-  }
-  current_player_ = current_player;
 }
 
 Color Board::CurrentPlayer() const { return current_player_; }

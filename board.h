@@ -17,6 +17,7 @@ class Board {
  public:
   Board();
   Board(const Board& b);
+  Board(std::vector<std::tuple<Position, std::unique_ptr<Piece>>>& positions, Color current_player);
   void Print(std::ostream& out = std::cout) const;
   std::vector<Move> GetMoves();
   int CountTargetedSquares(Color color);
@@ -28,7 +29,6 @@ class Board {
   void Set(Position position, std::unique_ptr<Piece> piece);
   std::optional<Position> FindKing(Color color) const;
   std::string Hash() const;
-  void Setup(std::vector<std::tuple<Position, std::unique_ptr<Piece>>>& positions, Color current_player);
   GameOutcome GetGameOutcome();
   Color CurrentPlayer() const;
 
