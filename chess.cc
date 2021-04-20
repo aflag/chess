@@ -59,8 +59,7 @@ Move ChooseAiMove(
 
 int main(int argc, char *argv[]) {
   Cache cache;
-  std::ofstream board_logs;
-  board_logs.open("/tmp/board.log");
+
   if (argc > 1 && !strcmp(argv[1], "ascii")) {
     srand(unsigned(time(nullptr)));
     Board board;
@@ -121,7 +120,7 @@ int main(int argc, char *argv[]) {
     Board board;
     Color mycolor = kBlack;
     bool first_move = true;
-    board.Print(board_logs);
+
     while (std::getline(std::cin, line)) {
       std::string command = line.substr(0, line.find(" "));
       if (command == "quit") {
@@ -137,7 +136,7 @@ int main(int argc, char *argv[]) {
         Move ai_move = ChooseAiMove(board, mycolor, kDepth, kUtility, cache);
         board.DoMove(ai_move);
         board.NewTurn();
-        board.Print(board_logs);
+
         std::cout << "move " << ai_move.XboardString() << std::endl;
       } else if (ignored.find(command) != ignored.end()) {
         // ignore
@@ -151,7 +150,6 @@ int main(int argc, char *argv[]) {
         }
         board.DoMove(*human_move);
         board.NewTurn();
-        board.Print(board_logs);
 
         auto valid_ai_moves = board.GetMoves();
         switch (board.GetGameOutcome()) {
@@ -168,7 +166,7 @@ int main(int argc, char *argv[]) {
         Move ai_move = ChooseAiMove(board, mycolor, kDepth, kUtility, cache);
         board.DoMove(ai_move);
         board.NewTurn();
-        board.Print(board_logs);
+
         std::cout << "move " << ai_move.XboardString() << std::endl;
 
         auto valid_human_moves = board.GetMoves();
@@ -185,6 +183,6 @@ int main(int argc, char *argv[]) {
       }
     }
   }
-  board_logs.close();
+
   return 0;
 }
