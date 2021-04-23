@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "common.h"
 #include "board.h"
 #include "color.h"
 #include "move.h"
@@ -14,4 +15,4 @@ Color Piece::GetColor() const { return color_; }
 
 void Piece::NewTurn() {}
 
-void Piece::DoMove(Board& board, const Move& move) {}
+void Piece::DoMove(unused Board& board, unused const Move& move) {}

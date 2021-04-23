@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "common.h"
 #include "board.h"
 #include "color.h"
 #include "movement.h"
@@ -17,7 +18,7 @@ std::vector<Position> Rook::GetMoves(const Board& board, Position from) const {
   return moves;
 }
 
-void Rook::DoMove(Board& board, const Move& move) { moved_ = true; }
+void Rook::DoMove(unused Board& board, unused const Move& move) { moved_ = true; }
 
 bool Rook::Moved() const { return moved_; }
 

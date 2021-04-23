@@ -93,7 +93,7 @@ void ComputeUtilityInternal(
 ) {
   auto theircolour = Other(mycolor);
   float mybest = multiplier(theircolour) * std::numeric_limits<double>::infinity();
-  int c = 0;
+  size_t c = 0;
   std::sort(moves.rbegin(), moves.rend(), CapturesFirst(parent_board));
   for (auto it = moves.begin(); it != moves.end(); ++it) {
     Board board = parent_board;

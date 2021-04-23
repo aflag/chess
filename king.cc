@@ -9,6 +9,7 @@
 #include "piece.h"
 #include "position.h"
 #include "rook.h"
+#include "common.h"
 
 namespace {
 
@@ -25,7 +26,7 @@ void GetRegularMoves(const Board& board, Position from, Color color,
 }
 
 // TODO: Check if the king is in check in any position in the way.
-void GetCastlingMoves(const Board& board, Position from, Color color,
+void GetCastlingMoves(const Board& board, Position from, unused Color color,
                       std::vector<Position>& moves) {
   for (int direction = -1; direction <= 1; direction += 2) {
     for (int size = 1; true; ++size) {
